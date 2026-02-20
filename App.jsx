@@ -1,9 +1,9 @@
 import React from 'react'
 import he from 'he'
+import Confetti from 'react-confetti'
 
 /*
 Features:
-smooth scroll to check answers button upon completion
 smooth scroll to top of quiz upon click of "new quiz" button
 Confetti if 5/5?
 */
@@ -16,29 +16,45 @@ export default function App() {
     const [showResults, setShowResults] = React.useState(false)
     const [quizStarted, setQuizStarted] = React.useState(false)
     
+    
     function startQuiz() {
         fetch('https://opentdb.com/api.php?amount=5&category=12&difficulty=easy&type=multiple')
-            .then(res => res.json())
-            .then(data => {
-                const quizWithShuffledAnswers = data.results.map(question => ({
-                    ...question,
-                    shuffledAnswers: [...question.incorrect_answers, question.correct_answer]
-                        .sort(() => Math.random() - 0.5)
-                }))
-                setQuiz(quizWithShuffledAnswers)
-                setQuizStarted(true)
-                setAttemptedAnswers({})
-                setShowResults(false)
-            })
+        .then(res => res.json())
+        .then(data => {
+            const quizWithShuffledAnswers = data.results.map(question => ({
+                ...question,
+                shuffledAnswers: [...question.incorrect_answers, question.correct_answer]
+                .sort(() => Math.random() - 0.5)
+            }))
+            setQuiz(quizWithShuffledAnswers)
+            setQuizStarted(true)
+            setAttemptedAnswers({})
+            setShowResults(false)
+        })
     }
     
     // Derived values
     const allAnswered = Object.keys(attemptedAnswers).length === quiz.length
     const score = quiz.filter((question, index) => 
-    attemptedAnswers[index] === he.decode(question.correct_answer)
-    ).length
-    
-    // listener callback functions
+        attemptedAnswers[index] === he.decode(question.correct_answer)
+).length
+
+    const ref = React.useRef(null)
+    const topRef = React.useRef(null)
+
+    React.useEffect(() => {
+        if (allAnswered && ref.current !== null) {
+            ref.current.scrollIntoView({behavior: "smooth"})
+        }
+    }, [allAnswered])
+
+    React.useEffect(() => {
+        if (!showResults && quizStarted && topRef.current) {
+            topRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [showResults])
+
+// listener callback functions
     function addAnswer(questionIndex, answer) {
         setAttemptedAnswers((prevAnswers) => ({
             ...prevAnswers,
@@ -73,12 +89,13 @@ export default function App() {
                         
                         return (
                             <React.Fragment key={i}>
-                                <input 
-                                    type="radio" 
-                                    name={index} 
-                                    id={`${index}-${decoded}`} 
+                                <input
+                                    type="radio"
+                                    name={index}
+                                    id={`${index}-${decoded}`}
                                     value={decoded}
-                                    onClick={() => addAnswer(index, decoded)}
+                                    checked={isSelected}
+                                    onChange={() => addAnswer(index, decoded)}
                                     disabled={showResults}
                                 />
                                 <label htmlFor={`${index}-${decoded}`} style={style}>{decoded}</label>
@@ -93,12 +110,13 @@ export default function App() {
     
     
     return (
-        <main>
+        <main ref={topRef}>
+            {showResults && score === quiz.length && <Confetti />}
             <div className="container">
                 {!quizStarted ? (
                     <div className="start-screen">
-                        <h1>Quizzical</h1>
-                        <p>a quiz app to test your musical knowledge</p>
+                        <h1>Musiquiz</h1>
+                        <p>a quiz app to test your musical trivia knowledge</p>
                         <button onClick={startQuiz}>Start Quiz</button>
                     </div>
                 ) : (
@@ -107,6 +125,7 @@ export default function App() {
                         {showResults && <h3>You scored {score}/{quiz.length} correct answers</h3>}
                         {allAnswered && !showResults && (
                                 <button
+                                    ref={ref}
                                     type="button"
                                     className="btn"
                                     onClick={() => setShowResults(true)}

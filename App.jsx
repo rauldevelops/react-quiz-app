@@ -1,6 +1,7 @@
 import React from 'react'
 import he from 'he'
 import Confetti from 'react-confetti'
+import { useWindowSize } from 'react-use'
 
 /*
 Features:
@@ -41,6 +42,7 @@ export default function App() {
 
     const ref = React.useRef(null)
     const topRef = React.useRef(null)
+    const { width, height } = useWindowSize()
 
     React.useEffect(() => {
         if (allAnswered && ref.current !== null) {
@@ -111,7 +113,13 @@ export default function App() {
     
     return (
         <main ref={topRef}>
-            {showResults && score === quiz.length && <Confetti />}
+            {showResults
+                && score === quiz.length
+                && <Confetti
+                        width={width}
+                        height={height}
+                   />
+            }
             <div className="container">
                 {!quizStarted ? (
                     <div className="start-screen">

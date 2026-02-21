@@ -52,7 +52,9 @@ main {
     justify-content: center;
     align-items: center;
     gap: 1em;
+    text-align: center;
 }
+
 form {
     display: flex;
     flex-direction: column;
@@ -112,6 +114,7 @@ button {
     color: #fff;
     padding: 1em 2em;
     border-radius: 8px;
+    font-size: 1.125rem;
 }
 
 .btn {
